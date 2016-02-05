@@ -1,6 +1,18 @@
+DROP DATABASE chat;
 CREATE DATABASE chat;
 
 USE chat;
+/* Create other tables and define schemas for them here! */
+
+CREATE TABLE rooms (
+  id INT PRIMARY KEY,
+  roomName TEXT
+);
+
+CREATE TABLE users(
+  id INT PRIMARY KEY,
+  userName TEXT
+);
 
 CREATE TABLE messages (
   /* Describe your table here.*/
@@ -13,17 +25,6 @@ CREATE TABLE messages (
   FOREIGN KEY(user_ID) references users(id)
 );
 
-/* Create other tables and define schemas for them here! */
-
-CREATE TABLE rooms (
-  id INT PRIMARY KEY,
-  roomName TEXT
-);
-
-CREATE TABLE users(
-  id INT PRIMARY KEY,
-  userName TEXT
-);
 
 
 /*  Execute this file from the command line by typing:
