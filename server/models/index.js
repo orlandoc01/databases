@@ -10,17 +10,34 @@ module.exports = {
     post: function (messageObj) {
       var now = 0;
       db.connect();
-      db.query('INSERT INTO messages VALUES (' + (messageId++) + ',' + 
-              messageObj.text + ',' + now + ',' + (roomId++) + ',' + 
-              (userId++) +');');
+      var messagesPost = {id: roomId, text: messageObj.text, createdAt: now,
+                        'room_ID': roomId, 'user_ID': userId};
+      var roomsPost = {id: roomId, roomName: messageObj.roomname};
 
-      db.query('INSERT INTO rooms VALUES (' + roomId + ',' + 
-              messageObj.roomname + ');');
+      var usersPost = {id: userId, userName: messageObj.username};
 
-      db.query('INSERT INTO users VALUES (' + userId + ',' + 
-              messageObj.username + ');');
+
+      db.query('INSERT INTO rooms SET ?', roomsPost, function(err) {
+        if(err) {
+          console.log('error inserting into rooms');
+        }
+      });
+      db.query('INSERT INTO users SET ?', usersPost, function(err) {
+        if(err) {
+          console.log('error inserting into users');
+        }
+      });
+      db.query('INSERT INTO messages SET ?', messagesPost, function(err) {
+        if(err) {
+          console.log('error inserting into messages');
+        }
+      });
 
       db.end();
+
+      userId++;
+      roomId++;
+      messageId++;
     } // a function which can be used to insert a message into the database
   },
 
