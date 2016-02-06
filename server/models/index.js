@@ -6,7 +6,7 @@ var roomId = 0;
 
 module.exports = {
   messages: {
-    get: function () {
+    get: function (callback) {
       db.connect();
 
       var allMessagesCommand = 'SELECT messages.id, messages.text, messages.createdAt, rooms.roomname, users.username' +
@@ -17,12 +17,12 @@ module.exports = {
         if(err) {
           throw err;
         }
-        
+        callback(rows);
       });
 
       db.end();
 
-    }, // a function which produces all the messages
+    }, 
     post: function (messageObj) {
       var now = 0;
       db.connect();
