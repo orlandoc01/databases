@@ -10,8 +10,7 @@ module.exports = {
     post: function (req, res) {
       var messageObj = req.body;
       res.send({message: 'message received'});
-
-      console.log(messageObj);
+      models.messages.post(messageObj);
     } // a function which handles posting a message to the database
   },
 
