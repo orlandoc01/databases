@@ -6,7 +6,22 @@ var roomId = 0;
 
 module.exports = {
   messages: {
-    get: function () {}, // a function which produces all the messages
+    get: function () {
+      db.connect();
+
+      var allMessagesCommand = 'SELECT messages.text, users.userName, rooms.roomname FROM messages INNER JOIN users ON messages.user_ID = users.id INNER JOIN rooms ON messages.room_ID = rooms.id';
+
+      db.query(allMessagesCommand, function(err, rows, fields) {
+        if(err) {
+          throw err;
+        }
+        console.log('One row is ' + JSON.stringify(rows[0]));
+        console.log('field is ' + JSON.stringify(fields[0]));
+      });
+
+      db.end();
+
+    }, // a function which produces all the messages
     post: function (messageObj) {
       var now = 0;
       db.connect();
