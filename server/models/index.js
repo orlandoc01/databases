@@ -9,14 +9,15 @@ module.exports = {
     get: function () {
       db.connect();
 
-      var allMessagesCommand = 'SELECT messages.text, users.userName, rooms.roomname FROM messages INNER JOIN users ON messages.user_ID = users.id INNER JOIN rooms ON messages.room_ID = rooms.id';
+      var allMessagesCommand = 'SELECT messages.id, messages.text, messages.createdAt, rooms.roomname, users.username' +
+      ' FROM messages INNER JOIN rooms ON messages.room_id = rooms.id' +
+      ' INNER JOIN users ON messages.user_id = users.id;';
 
       db.query(allMessagesCommand, function(err, rows, fields) {
         if(err) {
           throw err;
         }
-        console.log('One row is ' + JSON.stringify(rows[0]));
-        console.log('field is ' + JSON.stringify(fields[0]));
+        
       });
 
       db.end();
@@ -27,9 +28,9 @@ module.exports = {
       db.connect();
       var messagesPost = {id: roomId, text: messageObj.text, createdAt: now,
                         'room_ID': roomId, 'user_ID': userId};
-      var roomsPost = {id: roomId, roomName: messageObj.roomname};
+      var roomsPost = {id: roomId, roomname: messageObj.roomname};
 
-      var usersPost = {id: userId, userName: messageObj.username};
+      var usersPost = {id: userId, username: messageObj.username};
 
 
       db.query('INSERT INTO rooms SET ?', roomsPost, function(err) {
@@ -48,6 +49,7 @@ module.exports = {
         }
       });
 
+
       db.end();
 
       userId++;
@@ -59,7 +61,19 @@ module.exports = {
   users: {
     // Ditto as above.
     get: function () {},
-    post: function () {}
+    post: function (userObj) {
+      db.connect();
+
+      var user = {id: userId, username:userObj.username};
+
+      db.query('INSERT INTO users SET ?', user, function(err) {
+        if(err) {
+          console.log('Error setting user');
+        }
+      });
+
+      db.end();
+    }
   }
 };
 

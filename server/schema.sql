@@ -5,12 +5,12 @@ USE chat;
 
 CREATE TABLE rooms (
   id INT PRIMARY KEY,
-  roomName TEXT
+  roomname TEXT
 );
 
 CREATE TABLE users(
   id INT PRIMARY KEY,
-  userName TEXT
+  username TEXT
 );
 
 CREATE TABLE messages (
