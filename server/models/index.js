@@ -1,9 +1,11 @@
 var db = require('../db');
+var Promise = require('bluebird');
+var mysql = require('mysql');
 
-var messageId = 0;
-var userId = 0;
-var roomId = 0;
+Promise.promisifyAll(mysql);
 
+
+db.connect();
 module.exports = {
   messages: {
     get: function (callback) {
@@ -13,7 +15,7 @@ module.exports = {
       ' FROM messages INNER JOIN rooms ON messages.room_id = rooms.id' +
       ' INNER JOIN users ON messages.user_id = users.id;';
 
-      db.query(allMessagesCommand, function(err, rows, fields) {
+      db.query(allMessagesCommand, function(err, rows) {
         if(err) {
           throw err;
         }
@@ -25,36 +27,62 @@ module.exports = {
     }, 
     post: function (messageObj) {
       var now = 0;
-      db.connect();
-      var messagesPost = {id: roomId, text: messageObj.text, createdAt: now,
-                        'room_ID': roomId, 'user_ID': userId};
-      var roomsPost = {id: roomId, roomname: messageObj.roomname};
+      //db.connect();
+      var messagesPost = {text: messageObj.text, createdAt: now,
+                        'room_ID': 0, 'user_ID': 0};
+      var roomsPost = {roomname: messageObj.roomname};
 
-      var usersPost = {id: userId, username: messageObj.username};
+      var usersPost = {username: messageObj.username};
 
+      console.log('starting db query');
+      db.query('INSERT INTO rooms SET ?', roomsPost, function(err, roomResult) {
+          
+          //Show Arguments
+        var args = Array.prototype.slice.call(arguments);
+        args.forEach( function(val, index) {
+          console.log("at index " + index + " is " + JSON.stringify(val));
+        });
 
-      db.query('INSERT INTO rooms SET ?', roomsPost, function(err) {
-        if(err) {
-          console.log('error inserting into rooms');
+          //console error
+        if(err && err.errno === 1062) {
+          console.log('error ' + err.errno);
         }
-      });
-      db.query('INSERT INTO users SET ?', usersPost, function(err) {
-        if(err) {
-          console.log('error inserting into users');
-        }
-      });
-      db.query('INSERT INTO messages SET ?', messagesPost, function(err) {
-        if(err) {
-          console.log('error inserting into messages');
-        }
-      });
+
+        //start new query
+        console.log('Room result ID is ' + roomResult.insertId);
+        console.log('users post is ' + JSON.stringify(usersPost));
+        db.query('INSERT INTO users SET ?', usersPost, function(err, userResult) {
+          //show all arguments
+          var args = Array.prototype.slice.call(arguments);
+          args.forEach( function(val, index) {
+            console.log("at index " + index + " is " + JSON.stringify(val));
+          });
+
+          //console error
+          if(err && err.errno === 1062) {
+            console.log('error ' + err.errno);
+          }
+          console.log('User result ID is ' + userResult.insertId);
+
+          //construct new query
+          messagesPost['room_ID'] = roomResult.insertId;
+          messagesPost['user_ID'] = userResult.insertId;
+          db.query('INSERT INTO messages SET ?', messagesPost, function(err) {
+            if(err) {
+              console.log('error inserting into messages');
+            }
+            //complete
+            console.log('COmpleted storage');
+            console.log();
+            console.log();
+            //db.end();
 
 
-      db.end();
+          });
+        });
 
-      userId++;
-      roomId++;
-      messageId++;
+      });
+  
     } // a function which can be used to insert a message into the database
   },
 
