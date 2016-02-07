@@ -27,10 +27,10 @@ var app = {
 
     // Fetch previous messages
     app.startSpinner();
-    //app.fetch(false);
+    app.fetch(false);
 
     // Poll for new messages
-    //setInterval(app.fetch, 3000);
+    setInterval(app.fetch, 3000);
   },
 
   send: function(data) {
@@ -47,7 +47,7 @@ var app = {
       success: function (data) {
         // Trigger a fetch to update the messages, pass true to animate
         console.log("Sucess Data sent");
-        //app.fetch();
+        app.fetch();
       },
       error: function (data) {
         console.error('chatterbox: Failed to send message');

@@ -10,7 +10,7 @@ db.connect();
 module.exports = {
   messages: {
     get: function (callback) {
-      db.connect();
+      //db.connect();
 
       var allMessagesCommand = 'SELECT messages.id, messages.text, messages.createdAt, rooms.roomname, users.username' +
       ' FROM messages INNER JOIN rooms ON messages.room_id = rooms.id' +
@@ -23,7 +23,7 @@ module.exports = {
         callback(rows);
       });
 
-      db.end();
+      //db.end();
 
     }, 
     post: function (messageObj) {
@@ -47,7 +47,6 @@ module.exports = {
           return db.queryAsync('SELECT rooms.id FROM rooms WHERE rooms.roomname = "' + 
             roomsPost.roomname + '";')
           .then(function(rows){
-            console.log("OMG WERE IN PROMISES AND ID IS " + rows[0].id);
             messagesPost['room_ID'] = rows[0].id;
             console.log();
             return db.queryAsync('INSERT INTO users SET ?', usersPost);
@@ -62,7 +61,6 @@ module.exports = {
            return db.queryAsync('SELECT users.id FROM users WHERE users.username = "' + 
             usersPost.username + '";')
           .then(function(rows){
-            console.log("OMG WERE IN PROMISES AND ID IS " + rows[0].id);
             messagesPost['user_ID'] = rows[0].id;
             console.log();
             return db.queryAsync('INSERT INTO messages SET ?', messagesPost);
@@ -98,7 +96,7 @@ module.exports = {
     // Ditto as above.
     get: function () {},
     post: function (userObj) {
-      db.connect();
+      //db.connect();
 
       var user = {id: userId, username:userObj.username};
 
@@ -108,7 +106,7 @@ module.exports = {
         }
       });
 
-      db.end();
+      //db.end();
     }
   }
 };
