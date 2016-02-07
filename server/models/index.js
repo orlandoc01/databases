@@ -2,7 +2,8 @@ var db = require('../db');
 var Promise = require('bluebird');
 var mysql = require('mysql');
 
-Promise.promisifyAll(mysql);
+//Promise.promisifyAll(mysql);
+Promise.promisifyAll(db);
 
 
 db.connect();
@@ -26,6 +27,8 @@ module.exports = {
 
     }, 
     post: function (messageObj) {
+      var dummy = function(err) {console.log('something weird happened' + err);};
+
       var now = 0;
       //db.connect();
       var messagesPost = {text: messageObj.text, createdAt: now,
@@ -34,54 +37,49 @@ module.exports = {
 
       var usersPost = {username: messageObj.username};
 
-      console.log('starting db query');
-      db.query('INSERT INTO rooms SET ?', roomsPost, function(err, roomResult) {
-          
-          //Show Arguments
-        var args = Array.prototype.slice.call(arguments);
-        args.forEach( function(val, index) {
-          console.log("at index " + index + " is " + JSON.stringify(val));
-        });
+      db.queryAsync('INSERT INTO rooms SET ?', roomsPost)
 
-          //console error
-        if(err && err.errno === 1062) {
-          console.log('error ' + err.errno);
-        }
-
-        //start new query
-        console.log('Room result ID is ' + roomResult.insertId);
-        console.log('users post is ' + JSON.stringify(usersPost));
-        db.query('INSERT INTO users SET ?', usersPost, function(err, userResult) {
-          //show all arguments
-          var args = Array.prototype.slice.call(arguments);
-          args.forEach( function(val, index) {
-            console.log("at index " + index + " is " + JSON.stringify(val));
-          });
-
-          //console error
-          if(err && err.errno === 1062) {
-            console.log('error ' + err.errno);
-          }
-          console.log('User result ID is ' + userResult.insertId);
-
-          //construct new query
+        .then(function(roomResult){
           messagesPost['room_ID'] = roomResult.insertId;
-          messagesPost['user_ID'] = userResult.insertId;
-          db.query('INSERT INTO messages SET ?', messagesPost, function(err) {
-            if(err) {
-              console.log('error inserting into messages');
-            }
-            //complete
-            console.log('COmpleted storage');
+          return db.query('INSERT INTO users SET ?', usersPost);
+        }, function(err) {
+          return db.queryAsync('SELECT rooms.id FROM rooms WHERE rooms.roomname = "' + 
+            roomsPost.roomname + '";')
+          .then(function(rows){
+            console.log("OMG WERE IN PROMISES AND ID IS " + rows[0].id);
+            messagesPost['room_ID'] = rows[0].id;
             console.log();
-            console.log();
-            //db.end();
-
-
+            return db.query('INSERT INTO users SET ?', usersPost);
           });
-        });
+        })
 
-      });
+        .then(function(userResult){
+          console.log("USERRESULT IS " + (userResult));
+          console.log();
+          messagesPost['user_ID'] = userResult.insertId;
+          return db.query('INSERT INTO messages SET ?', messagesPost);
+        }, dummy);
+
+      // db.query('INSERT INTO rooms SET ?', roomsPost, function(err, roomResult) {
+      //   db.query('INSERT INTO users SET ?', usersPost, function(err, userResult) {
+      //     //construct new query
+      //     messagesPost['room_ID'] = roomResult.insertId;
+      //     messagesPost['user_ID'] = userResult.insertId;
+      //     db.query('INSERT INTO messages SET ?', messagesPost, function(err) {
+      //       if(err) {
+      //         console.log('error inserting into messages');
+      //       }
+      //       //complete
+      //       console.log('COmpleted storage');
+      //       console.log();
+      //       console.log();
+      //       //db.end();
+
+
+      //     });
+      //   });
+
+      // });
   
     } // a function which can be used to insert a message into the database
   },
